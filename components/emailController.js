@@ -2,6 +2,8 @@ const databaseConn = require("../db");
 const nodemailer = require("nodemailer");
 const { check, validationResult } = require("express-validator");
 
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
 exports.validateEmailInput = [
   // Defina as regras de validação aqui usando express-validator
   check("nome").notEmpty().withMessage('O campo "nome" não pode estar vazio'),
@@ -72,14 +74,14 @@ async function sendEmail(nome, email, telefone, content) {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
+      user: EMAIL_USER,
+      pass: EMAIL_PASSWORD,
     },
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: process.env.EMAIL_USER,
+    from: EMAIL_USER,
+    to: EMAIL_USER,
     subject: "Novo Cliente em Contato",
     text: `Cliente: ${nome}. Email: ${email}; Telefone: ${telefone} deseja contratar os serviços ${content} da CodeCase. Entre em contato!`,
   };
