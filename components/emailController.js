@@ -1,6 +1,24 @@
 const databaseConn = require("../db");
 const nodemailer = require("nodemailer");
+const { check, validationResult } = require("express-validator");
 
+exports.validateEmailInput = [
+  // Defina as regras de validação aqui usando express-validator
+  check("nome").notEmpty().withMessage('O campo "nome" não pode estar vazio'),
+  check("email").isEmail().withMessage("Formato de email inválido"),
+  check("telefone")
+    .notEmpty()
+    .withMessage('O campo "telefone" não pode estar vazio'),
+  check("content").isArray().withMessage('O campo "content" deve ser um array'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  },
+];
 // Função auxiliar para iniciar uma transação no banco de dados
 async function beginTransaction(db) {
   return new Promise((resolve, reject) => {
@@ -81,11 +99,6 @@ exports.Email = async (req, res, next) => {
 
   try {
     const { nome, email, telefone, content } = req.body;
-    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-
-    if (!emailRegex.test(email)) {
-      throw new Error("Formato de email inválido");
-    }
 
     await beginTransaction(db); // Iniciar a transação no banco de dados
 
