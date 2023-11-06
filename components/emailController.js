@@ -1,4 +1,4 @@
-const db = require("../db");
+const databaseConn = require("../db");
 const nodemailer = require("nodemailer");
 
 exports.Email = async (req, res, next) => {
@@ -15,6 +15,14 @@ exports.Email = async (req, res, next) => {
 
     const queryPromise = () => {
       return new Promise((resolve, reject) => {
+        const db = databaseConn();
+        db.connect((err) => {
+          if (err) {
+            console.error("MySQL connection error:", err);
+            return;
+          }
+          console.log("Connected to MySQL database");
+        });
         db.query(sql, values, (err, result) => {
           if (err) {
             reject(err);
@@ -22,10 +30,18 @@ exports.Email = async (req, res, next) => {
             resolve(result);
           }
         });
+        db.end((err, result) => {
+          console.log("Conexão encerrada com sucesso");
+        });
       });
     };
-
-    const result = await queryPromise();
+    try {
+      const result = await queryPromise();
+    } catch (dbError) {
+      console.error("Erro no banco de dados:", dbError);
+      res.status(500).json({ error: "Erro interno do servidor" });
+      return; // Encerre a função aqui para evitar a execução adici
+    }
 
     const transporter = nodemailer.createTransport({
       service: "Gmail",
